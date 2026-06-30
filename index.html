@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wilff's TEMPLE — Donut SMP Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0814;
+    --void-2:#120e22;
+    --panel:#171130;
+    --panel-2:#1e1640;
+    --violet:#7c3aed;
+    --violet-2:#9d5cff;
+    --lilac:#c084fc;
+    --magenta:#e879f9;
+    --ink:#f5f3ff;
+    --ink-dim:#bdb4d9;
+    --line:rgba(192,132,252,0.18);
+    --pixel-font:'Press Start 2P', monospace;
+    --body-font:'Inter', system-ui, sans-serif;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:var(--body-font);
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ---------- ambient end-crystal orbs ---------- */
+  .orb-field{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    overflow:hidden;
+  }
+  .orb{
+    position:absolute;
+    width:10px;height:10px;
+    background:var(--magenta);
+    border-radius:2px;
+    box-shadow:0 0 18px 6px rgba(232,121,249,0.65), 0 0 40px 14px rgba(124,58,237,0.35);
+    animation:drift linear infinite;
+  }
+  @keyframes drift{
+    0%{transform:translateY(110vh) translateX(0) rotate(0deg); opacity:0;}
+    8%{opacity:1;}
+    92%{opacity:1;}
+    100%{transform:translateY(-10vh) translateX(40px) rotate(45deg); opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .orb{animation:none; opacity:0;}
+  }
+
+  a{color:inherit; text-decoration:none;}
+  img{display:block; max-width:100%;}
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:50;
+    background:rgba(10,8,20,0.78);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .navrow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 24px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family:var(--pixel-font);
+    font-size:14px;
+    letter-spacing:1px;
+    color:var(--ink);
+  }
+  .brand img{
+    width:36px;height:36px;
+    border-radius:8px;
+    border:2px solid var(--violet-2);
+    box-shadow:0 0 12px rgba(157,92,255,0.6);
+  }
+  nav ul{
+    display:flex;
+    gap:28px;
+    list-style:none;
+  }
+  nav a{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink-dim);
+    transition:color .2s;
+    position:relative;
+  }
+  nav a:hover, nav a:focus-visible{color:var(--lilac);}
+  .nav-cta{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--violet);
+    color:#fff;
+    padding:9px 18px;
+    border-radius:8px;
+    font-weight:700;
+    font-size:14px;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.08) inset, 0 4px 18px rgba(124,58,237,0.45);
+    transition:transform .15s, box-shadow .15s, background .15s;
+  }
+  .nav-cta:hover, .nav-cta:focus-visible{
+    background:var(--violet-2);
+    transform:translateY(-1px);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.12) inset, 0 6px 22px rgba(157,92,255,0.6);
+  }
+  .navtoggle{display:none;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    padding:160px 0 110px;
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero-banner{
+    position:absolute;
+    inset:0;
+    z-index:-1;
+  }
+  .hero-banner img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center 30%;
+    opacity:0.4;
+    filter:saturate(1.1);
+  }
+  .hero-banner::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(10,8,20,0.55) 0%, rgba(10,8,20,0.75) 45%, var(--void) 100%);
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--lilac);
+    background:rgba(124,58,237,0.14);
+    border:1px solid var(--line);
+    padding:7px 14px;
+    border-radius:999px;
+    margin-bottom:28px;
+  }
+  .eyebrow .dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:#34d399;
+    box-shadow:0 0 8px #34d399;
+  }
+  .hero h1{
+    font-family:var(--pixel-font);
+    font-size:clamp(32px, 6vw, 64px);
+    line-height:1.25;
+    color:#fff;
+    text-shadow:0 0 24px rgba(157,92,255,0.55), 4px 4px 0 var(--violet);
+    max-width:880px;
+    margin-bottom:24px;
+  }
+  .hero h1 span{
+    background:linear-gradient(180deg, #fff 35%, var(--lilac) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .hero p.lead{
+    font-size:18px;
+    color:var(--ink-dim);
+    max-width:580px;
+    line-height:1.7;
+    margin-bottom:36px;
+  }
+  .hero-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-bottom:56px;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 28px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:15px;
+    transition:transform .15s, box-shadow .15s, background .15s, border-color .15s;
+    border:1px solid transparent;
+  }
+  .btn-primary{
+    background:var(--violet);
+    color:#fff;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 28px rgba(124,58,237,0.5);
+  }
+  .btn-primary:hover, .btn-primary:focus-visible{
+    background:var(--violet-2);
+    transform:translateY(-2px);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 32px rgba(157,92,255,0.65);
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,0.03);
+    color:var(--ink);
+    border-color:var(--line);
+  }
+  .btn-ghost:hover, .btn-ghost:focus-visible{
+    border-color:var(--lilac);
+    color:var(--lilac);
+    transform:translateY(-2px);
+  }
+  .hero-stats{
+    display:flex;
+    gap:40px;
+    flex-wrap:wrap;
+  }
+  .stat .num{
+    font-family:var(--pixel-font);
+    font-size:24px;
+    color:#fff;
+    text-shadow:0 0 14px rgba(157,92,255,0.6);
+  }
+  .stat .label{
+    font-size:13px;
+    color:var(--ink-dim);
+    margin-top:4px;
+  }
+
+  /* ---------- section shell ---------- */
+  section{
+    position:relative;
+    padding:96px 0;
+  }
+  .section-head{
+    max-width:640px;
+    margin-bottom:56px;
+  }
+  .section-tag{
+    font-family:var(--pixel-font);
+    font-size:11px;
+    color:var(--magenta);
+    letter-spacing:1px;
+    margin-bottom:14px;
+    display:block;
+  }
+  .section-head h2{
+    font-size:clamp(26px, 4vw, 38px);
+    font-weight:800;
+    line-height:1.25;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .section-head p{
+    color:var(--ink-dim);
+    font-size:16px;
+    line-height:1.7;
+  }
+
+  /* ---------- services ---------- */
+  .services{
+    background:linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:32px 28px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .card::before{
+    content:'';
+    position:absolute;
+    top:-40%; right:-40%;
+    width:180px; height:180px;
+    background:radial-gradient(circle, rgba(232,121,249,0.25), transparent 70%);
+    pointer-events:none;
+  }
+  .card:hover{
+    transform:translateY(-6px);
+    border-color:var(--violet-2);
+    box-shadow:0 16px 40px rgba(124,58,237,0.25);
+  }
+  .card .icon{
+    width:52px; height:52px;
+    border-radius:12px;
+    background:linear-gradient(135deg, var(--violet), var(--magenta));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:22px;
+    font-size:24px;
+    box-shadow:0 6px 20px rgba(124,58,237,0.45);
+  }
+  .card h3{
+    font-size:19px;
+    font-weight:700;
+    color:#fff;
+    margin-bottom:10px;
+  }
+  .card p{
+    color:var(--ink-dim);
+    font-size:14.5px;
+    line-height:1.65;
+  }
+  .card .tag{
+    display:inline-block;
+    margin-top:18px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    color:var(--lilac);
+    border:1px solid var(--line);
+    padding:5px 10px;
+    border-radius:6px;
+  }
+
+  /* ---------- community / giveaways ---------- */
+  .community{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:64px;
+    align-items:center;
+  }
+  .community-art{
+    position:relative;
+    border-radius:20px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 20px 60px rgba(124,58,237,0.3);
+  }
+  .community-art img{
+    width:100%;
+    display:block;
+  }
+  .community-art::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, transparent 60%, rgba(10,8,20,0.85));
+  }
+  .pill-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin-top:28px;
+  }
+  .pill-list li{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    list-style:none;
+    color:var(--ink-dim);
+    font-size:15px;
+    line-height:1.6;
+  }
+  .pill-list .bullet{
+    flex:none;
+    width:22px;height:22px;
+    border-radius:6px;
+    background:rgba(124,58,237,0.18);
+    border:1px solid var(--violet-2);
+    color:var(--lilac);
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:2px;
+  }
+  .pill-list strong{color:#fff;}
+
+  /* ---------- cta band ---------- */
+  .cta-band{
+    background:radial-gradient(120% 140% at 50% 0%, rgba(124,58,237,0.35), transparent 60%), var(--panel-2);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  .cta-band h2{
+    font-family:var(--pixel-font);
+    font-size:clamp(20px, 3.4vw, 30px);
+    color:#fff;
+    margin-bottom:18px;
+    text-shadow:0 0 20px rgba(157,92,255,0.5);
+  }
+  .cta-band p{
+    color:var(--ink-dim);
+    max-width:520px;
+    margin:0 auto 36px;
+    font-size:16px;
+    line-height:1.7;
+  }
+  .cta-row{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:48px 0 36px;
+    border-top:1px solid var(--line);
+  }
+  .foot-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:20px;
+  }
+  .foot-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-family:var(--pixel-font);
+    font-size:13px;
+  }
+  .foot-brand img{
+    width:30px;height:30px;
+    border-radius:7px;
+    border:2px solid var(--violet-2);
+  }
+  .foot-links{
+    display:flex;
+    gap:26px;
+    list-style:none;
+    font-size:14px;
+    color:var(--ink-dim);
+  }
+  .foot-links a:hover{color:var(--lilac);}
+  .foot-copy{
+    text-align:center;
+    color:#6b6285;
+    font-size:13px;
+    margin-top:32px;
+  }
+
+  /* ---------- focus ---------- */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--lilac);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 880px){
+    .card-grid{grid-template-columns:1fr 1fr;}
+    .community{grid-template-columns:1fr; gap:40px;}
+  }
+  @media (max-width: 720px){
+    nav ul{display:none;}
+    .navtoggle{
+      display:flex;
+      background:none;
+      border:1px solid var(--line);
+      color:var(--ink);
+      padding:8px 12px;
+      border-radius:8px;
+      font-size:13px;
+    }
+    .card-grid{grid-template-columns:1fr;}
+    .hero{padding:140px 0 80px;}
+    .hero-stats{gap:28px;}
+    .foot-row{flex-direction:column; text-align:center;}
+    .foot-links{flex-wrap:wrap; justify-content:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="orb-field" id="orbField" aria-hidden="true"></div>
+
+<header>
+  <div class="navrow">
+    <a class="brand" href="#top">
+      <img src="pfp.png" alt="">
+      WILFF'S TEMPLE
+    </a>
+    <nav>
+      <ul>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#community">Community</a></li>
+        <li><a href="#join">Join</a></li>
+      </ul>
+    </nav>
+    <a class="nav-cta" href="https://discord.gg/u7M7KTzZa" target="_blank" rel="noopener">Join Discord</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-banner" aria-hidden="true">
+      <img src="assets/banner.png" alt="">
+    </div>
+    <div class="wrap">
+      <span class="eyebrow"><span class="dot"></span> Donut SMP · Community Hub</span>
+      <h1>Welcome to<br><span>Wilff's TEMPLE</span></h1>
+      <p class="lead">A Donut SMP community built around giveaways, builds, and people who actually log on every day. Pull up, grab a service, win something insane, and stay a while.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://discord.gg/u7M7KTzZa" target="_blank" rel="noopener">Join the Discord →</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/@wilffplayz" target="_blank" rel="noopener">Watch on YouTube</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="num">Donut SMP</div>
+          <div class="label">Where we play</div>
+        </div>
+        <div class="stat">
+          <div class="num">Insane</div>
+          <div class="label">Giveaways</div>
+        </div>
+        <div class="stat">
+          <div class="num">Builds · Farms · Digging</div>
+          <div class="label">Services on offer</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services" id="services">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-tag">// SERVICES</span>
+        <h2>Need something built? We've got you.</h2>
+        <p>Whether you're starting fresh on Donut SMP or finishing a megabase, Wilff's TEMPLE runs paid and community services to get you there faster.</p>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="icon">🏗️</div>
+          <h3>Building</h3>
+          <p>Bases, spawns, and full builds on Donut SMP — from simple survival builds to bigger projects, made to fit your style.</p>
+          <span class="tag">On request</span>
+        </div>
+        <div class="card">
+          <div class="icon">🌾</div>
+          <h3>Farms</h3>
+          <p>Efficient resource and mob farms set up and built for you, so you spend less time grinding and more time playing.</p>
+          <span class="tag">Build to spec</span>
+        </div>
+        <div class="card">
+          <div class="icon">⛏️</div>
+          <h3>Digging</h3>
+          <p>Tunnels, foundations, mining, terraforming — the tedious digging work handled so your build day goes faster.</p>
+          <span class="tag">Any scale</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMUNITY -->
+  <section id="community">
+    <div class="wrap">
+      <div class="community">
+        <div class="community-art">
+          <img src="banner.png" alt="Wilff's TEMPLE banner art showing the Minecraft End dimension with enderman and floating crystals">
+        </div>
+        <div>
+          <span class="section-tag">// THE COMMUNITY</span>
+          <h2 style="font-size:clamp(24px,3.6vw,32px); font-weight:800; color:#fff; margin-bottom:14px; line-height:1.3;">A genuinely nice Donut SMP community</h2>
+          <p style="color:var(--ink-dim); font-size:15.5px; line-height:1.7;">No drama, no gatekeeping — just people building, trading, and helping each other out on Donut SMP. Wilff runs giveaways that are actually worth entering.</p>
+          <ul class="pill-list">
+            <li><span class="bullet">✦</span><span><strong>Insane giveaways.</strong> Regular drops for the active community, no weird hoops to jump through.</span></li>
+            <li><span class="bullet">✦</span><span><strong>Active members.</strong> People online and playing Donut SMP, not just sitting in a quiet server.</span></li>
+            <li><span class="bullet">✦</span><span><strong>Services on tap.</strong> Builders, farmers, and diggers in the same place you hang out.</span></li>
+            <li><span class="bullet">✦</span><span><strong>Wilff content.</strong> Clips, streams, and SMP highlights over on YouTube.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band" id="join">
+    <div class="wrap">
+      <h2>STEP THROUGH THE PORTAL</h2>
+      <p>Jump into Wilff's TEMPLE, say hi, and see what's being given away this week.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://discord.gg/u7M7KTzZa" target="_blank" rel="noopener">Join the Discord →</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/@wilffplayz" target="_blank" rel="noopener">Subscribe on YouTube</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <a class="foot-brand" href="#top">
+        <img src="pfp.png" alt="">
+        WILFF'S TEMPLE
+      </a>
+      <ul class="foot-links">
+        <li><a href="https://discord.gg/u7M7KTzZa" target="_blank" rel="noopener">Discord</a></li>
+        <li><a href="https://www.youtube.com/@wilffplayz" target="_blank" rel="noopener">YouTube</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#community">Community</a></li>
+      </ul>
+    </div>
+    <div class="foot-copy">Wilff's TEMPLE — a Donut SMP community. Not affiliated with Mojang or Microsoft.</div>
+  </div>
+</footer>
+
+<script>
+  // Ambient end-crystal orbs drifting upward through dark sections
+  (function(){
+    var field = document.getElementById('orbField');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var count = window.innerWidth < 720 ? 10 : 18;
+    for (var i = 0; i < count; i++){
+      var orb = document.createElement('div');
+      orb.className = 'orb';
+      var left = Math.random() * 100;
+      var duration = 10 + Math.random() * 14;
+      var delay = Math.random() * -duration;
+      var size = 6 + Math.random() * 8;
+      orb.style.left = left + 'vw';
+      orb.style.width = size + 'px';
+      orb.style.height = size + 'px';
+      orb.style.animationDuration = duration + 's';
+      orb.style.animationDelay = delay + 's';
+      field.appendChild(orb);
+    }
+  })();
+
+  // Mobile nav toggle (simple show/hide for the link list)
+  document.addEventListener('DOMContentLoaded', function(){
+    var navRow = document.querySelector('.navrow');
+    var ul = document.querySelector('nav ul');
+    if (window.innerWidth <= 720){
+      var btn = document.createElement('button');
+      btn.className = 'navtoggle';
+      btn.textContent = 'Menu';
+      btn.setAttribute('aria-expanded', 'false');
+      navRow.insertBefore(btn, navRow.querySelector('.nav-cta'));
+      btn.addEventListener('click', function(){
+        var open = ul.style.display === 'flex';
+        ul.style.display = open ? 'none' : 'flex';
+        ul.style.flexDirection = 'column';
+        ul.style.position = 'absolute';
+        ul.style.top = '64px';
+        ul.style.left = '0';
+        ul.style.right = '0';
+        ul.style.background = 'rgba(10,8,20,0.97)';
+        ul.style.padding = '20px 24px';
+        ul.style.borderBottom = '1px solid var(--line)';
+        ul.style.gap = '18px';
+        btn.setAttribute('aria-expanded', String(!open));
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

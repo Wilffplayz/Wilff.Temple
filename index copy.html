@@ -136,6 +136,46 @@
   }
   .navtoggle{display:none;}
 
+  /* ---------- live count badges (nav) ---------- */
+  .live-badges{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-right:18px;
+  }
+  .live-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-dim);
+    background:rgba(124,58,237,0.12);
+    border:1px solid var(--line);
+    padding:6px 11px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .live-badge .live-dot{
+    width:6px;height:6px;
+    border-radius:50%;
+    background:#34d399;
+    box-shadow:0 0 6px #34d399;
+    flex:none;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  .live-badge strong{
+    color:#fff;
+    font-weight:700;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.35;}
+  }
+  @media (max-width: 880px){
+    .live-badges{display:none;}
+  }
+
   /* ---------- hero ---------- */
   .hero{
     position:relative;
@@ -252,6 +292,17 @@
     font-size:24px;
     color:#fff;
     text-shadow:0 0 14px rgba(157,92,255,0.6);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .stat .num .live-dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:#34d399;
+    box-shadow:0 0 8px #34d399;
+    flex:none;
+    animation:pulse 1.8s ease-in-out infinite;
   }
   .stat .label{
     font-size:13px;
@@ -526,6 +577,10 @@
         <li><a href="#join">Join</a></li>
       </ul>
     </nav>
+    <div class="live-badges" aria-live="polite">
+      <span class="live-badge"><span class="live-dot"></span><strong id="navDiscordCount">···</strong>&nbsp;members</span>
+      <span class="live-badge"><span class="live-dot"></span><strong id="navYoutubeCount">···</strong>&nbsp;subs</span>
+    </div>
     <a class="nav-cta" href="https://discord.gg/u7M7KTzZa" target="_blank" rel="noopener">Join Discord</a>
   </div>
 </header>
@@ -547,12 +602,12 @@
       </div>
       <div class="hero-stats">
         <div class="stat">
-          <div class="num">Donut SMP</div>
-          <div class="label">Where we play</div>
+          <div class="num"><span class="live-dot" aria-hidden="true"></span><span id="discordStat">···</span></div>
+          <div class="label">Discord members</div>
         </div>
         <div class="stat">
-          <div class="num">Insane</div>
-          <div class="label">Giveaways</div>
+          <div class="num"><span class="live-dot" aria-hidden="true"></span><span id="youtubeStat">···</span></div>
+          <div class="label">YouTube subscribers</div>
         </div>
         <div class="stat">
           <div class="num">Builds · Farms · Digging</div>
@@ -695,6 +750,106 @@
       });
     }
   });
+
+  /* ===================================================================
+     LIVE COUNTS — Discord member count + YouTube subscriber count
+     ===================================================================
+     Discord: uses Discord's public invite endpoint. No key required,
+     works for any active invite link. Updates the server's approximate
+     member count (Discord rounds/caches this server-side, so it won't
+     move every second, but it stays current).
+
+     YouTube: the YouTube Data API v3 is the only official way to read
+     a live subscriber count, and it requires a free API key:
+       1. Go to https://console.cloud.google.com/
+       2. Create a project (or use an existing one)
+       3. Enable "YouTube Data API v3" under APIs & Services
+       4. Create an API key under Credentials
+       5. Paste it into YOUTUBE_API_KEY below
+     The key only needs read access and the free quota (10,000 units/day)
+     is far more than this page needs (1 unit per page load + refresh).
+     Until a key is added, the YouTube counter will show "—".
+  =================================================================== */
+  (function(){
+    var DISCORD_INVITE_CODE = 'u7M7KTzZa';
+    var YOUTUBE_API_KEY = 'AIzaSyANKbDU_wjW1txx3tP8c15IXUCXKpN0ZcQ'; // <-- paste your YouTube Data API v3 key here
+    var YOUTUBE_HANDLE = 'Wilffplayz';
+
+    var DISCORD_REFRESH_MS = 60 * 1000;       // 1 minute
+    var YOUTUBE_REFRESH_MS = 5 * 60 * 1000;   // 5 minutes (keeps quota usage tiny)
+
+    function formatCount(n){
+      n = Number(n);
+      if (isNaN(n)) return '—';
+      if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+      return String(n);
+    }
+
+    function setText(id, text){
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function fetchDiscordCount(){
+      fetch('https://discord.com/api/v10/invites/' + DISCORD_INVITE_CODE + '?with_counts=true')
+        .then(function(r){
+          if (!r.ok) throw new Error('Discord invite fetch failed: ' + r.status);
+          return r.json();
+        })
+        .then(function(data){
+          var count = data && data.approximate_member_count;
+          var formatted = (typeof count === 'number') ? formatCount(count) : '—';
+          setText('discordStat', formatted);
+          setText('navDiscordCount', formatted);
+        })
+        .catch(function(err){
+          console.warn('Discord count unavailable:', err);
+          setText('discordStat', '—');
+          setText('navDiscordCount', '—');
+        });
+    }
+
+    function fetchYoutubeCount(){
+      if (!YOUTUBE_API_KEY){
+        setText('youtubeStat', '—');
+        setText('navYoutubeCount', '—');
+        return;
+      }
+      var url = 'https://www.googleapis.com/youtube/v3/channels'
+        + '?part=statistics'
+        + '&forHandle=' + encodeURIComponent(YOUTUBE_HANDLE)
+        + '&key=' + encodeURIComponent(YOUTUBE_API_KEY);
+
+      fetch(url)
+        .then(function(r){
+          if (!r.ok) throw new Error('YouTube API fetch failed: ' + r.status);
+          return r.json();
+        })
+        .then(function(data){
+          var item = data && data.items && data.items[0];
+          var stats = item && item.statistics;
+          var formatted = '—';
+          if (stats && stats.hiddenSubscriberCount){
+            formatted = 'Hidden';
+          } else if (stats && stats.subscriberCount !== undefined){
+            formatted = formatCount(stats.subscriberCount);
+          }
+          setText('youtubeStat', formatted);
+          setText('navYoutubeCount', formatted);
+        })
+        .catch(function(err){
+          console.warn('YouTube count unavailable:', err);
+          setText('youtubeStat', '—');
+          setText('navYoutubeCount', '—');
+        });
+    }
+
+    fetchDiscordCount();
+    fetchYoutubeCount();
+    setInterval(fetchDiscordCount, DISCORD_REFRESH_MS);
+    setInterval(fetchYoutubeCount, YOUTUBE_REFRESH_MS);
+  })();
 </script>
 
 </body>
